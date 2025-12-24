@@ -134,10 +134,12 @@ Cek juga repo lain nya:
         </ul>
         ```
 
+    - Terakhir2️⃣ , nambahin data ke data_barang
+
 
 3. **Hasil Akhir**
     
-    - Page dan Search
+    - Demo
     ![alt text](gambar/ada.gif)
 
     - Profile
