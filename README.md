@@ -137,6 +137,7 @@ Cek juga repo lain nya:
 
 3. **Hasil Akhir**
     
+    - Page dan Search
     ![alt text](gambar/ada.gif)
 
     - Profile
