@@ -142,12 +142,6 @@ Cek juga repo lain nya:
     - Demo
     ![alt text](gambar/ada.gif)
 
-    - 400
-    ![alt text](gambar/get.gif)
-
-    - 560
-    ![alt text](gambar/got.gif)
-
     - Profile
     ![alt text](gambar/3.7.png)
 
@@ -164,7 +158,7 @@ Cek juga repo lain nya:
     ![alt text](gambar/3.6.1.png)
 
     
-## Akhri Kata
+## Akhir Kata
 
 
 *Selamat mencoba*
