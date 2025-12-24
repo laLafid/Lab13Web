@@ -5,7 +5,7 @@ if (!file_exists(ROOT . 'config.php')) {
 require_once ROOT . 'config.php';
 define('GAMBAR', ROOT . 'gambar/');
 define('BASE_URL', 'http://localhost/webpro14/');  // ganti sesuai folder , jangn lupain di .htaccess juga
-
+ 
  
 class Database {
     protected $host;
@@ -43,6 +43,7 @@ class Database {
 
     public function getAll($table, $where = null) {
         if ($where) $where = " WHERE " . $where;
+
         $sql = "SELECT * FROM " . $table . $where;
         $sql_count = "SELECT COUNT(*) FROM " . $table . $where;
         if(isset($sql_where)) {
@@ -55,7 +56,7 @@ class Database {
             $row_count = $result_count->fetch_row();
             $count = $row_count[0];
         }
-        $per_page = 1;
+        $per_page = 10;
         $num_page = ceil($count / $per_page);
         $limit = $per_page;
 

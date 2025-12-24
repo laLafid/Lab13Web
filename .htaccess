@@ -11,4 +11,4 @@
 Options -Indexes
 
 # Disable server signature
-ServerSignature Off 
+ServerSignature Off

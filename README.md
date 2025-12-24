@@ -1,9 +1,9 @@
-# Latihan Autentikasi Tahap Lanjut
+# Latihan Pagination dan Search bar
 
 
-Halo halo, Sekarang disini akan mencoba menggunakan data dari SQL untuk login.
+Halo halo, Sekarang disini akan mencoba implement pagination untuk data barang dan search bar.
 Cek juga repo lain nya:
- [Html dasar](https://github.com/laLafid/Lab1Web), [CSS dasar](https://github.com/laLafid/lab2web), [CSS](https://github.com/laLafid/Lab3Web), [CSS Layout](https://github.com/laLafid/Lab4Web), [Dasar Javascript](https://github.com/laLafid/Lab5Web), [Dasar Bootstarp](https://github.com/laLafid/Lab6Web), [Dasar PHP](https://github.com/laLafid/Lab7Web), [CRUD PHP](https://github.com/laLafid/Lab8Web),  [Modular PHP](https://github.com/laLafid/Lab9Web), [OOP PHP](https://github.com/laLafid/Lab10Web) dan [OOP Lanjutan](https://github.com/laLafid/Lab11Web).
+ [Html dasar](https://github.com/laLafid/Lab1Web), [CSS dasar](https://github.com/laLafid/lab2web), [CSS](https://github.com/laLafid/Lab3Web), [CSS Layout](https://github.com/laLafid/Lab4Web), [Dasar Javascript](https://github.com/laLafid/Lab5Web), [Dasar Bootstarp](https://github.com/laLafid/Lab6Web), [Dasar PHP](https://github.com/laLafid/Lab7Web), [CRUD PHP](https://github.com/laLafid/Lab8Web),  [Modular PHP](https://github.com/laLafid/Lab9Web), [OOP PHP](https://github.com/laLafid/Lab10Web), [OOP Lanjutan](https://github.com/laLafid/Lab11Web) dan [Autentikasi Tahap Lanjut](https://github.com/laLafid/Lab12Web) .
 
 
 ## Langkah-langkah
@@ -34,111 +34,110 @@ Cek juga repo lain nya:
 
 2. **Penerapan**
 
-    - Tambahan di ``index.php``:
+    - Untuk dapat page, tambahin di function getAll yang ada di ``db.php``
     ```php
-    $public_pages = ['home', 'user']; 
-    if (!in_array($mod, $public_pages)) {
-        // Jika tidak ada session is_login, lempar ke halaman login
-        if (!isset($_SESSION['is_login'])) {
-            header('Location: ' . BASE_URL . 'user/login'); // Sesuaikan jika perlu
-            exit();
+    public function getAll($table, $where = null) {
+        if ($where) $where = " WHERE " . $where;
+
+        $sql = "SELECT * FROM " . $table . $where;
+        $sql_count = "SELECT COUNT(*) FROM " . $table . $where; //
+        if(isset($sql_where)) {
+            $sql .= " " . $sql_where;
+            $sql_count .= " " . $sql_where;
         }
+        $result_count = $this->query($sql_count);
+        $count=0;
+        if($result_count){
+            $row_count = $result_count->fetch_row();
+            $count = $row_count[0];
+        }
+        $per_page = 10;
+        $num_page = ceil($count / $per_page);
+        $limit = $per_page;
+
+        if (isset($_GET['page'])) {
+            $page = (int)$_GET['page'];
+            $start = ($page - 1) * $per_page;
+        } else {
+            $start = 0;
+        }
+        $sql .= " LIMIT " . $start . "," . $limit;
+        $result = $this->query($sql);
+        return [   //bagian ini dipakai untuk tahap selanjutnya
+            'data' => $result,  
+            'num_page' => $num_page
+        ];
     }
     ```
 
 
-    - Buat tabel baru di database untuk akun yang dipakai login
-        - Tabel nya
-        ```sql
-        CREATE TABLE users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        nama VARCHAR(100)
-        );
+    - Tapi sebelum itu, bikin dulu untuk search ny
+        - di ``home.php``
+        ```php
+        $q = ''; // untukny pencarian
+        if (isset($_GET['submit']) && !empty($_GET['q'])) {
+            $q = $_GET['q'];
+            $sql_where = "nama LIKE '{$q}%'"; 
+        } else{ $sql_where=null;}
         ```
         
-        - Isian-nya dengan password ``admin123``
-        ```sql
-        INSERT INTO users (username, password, nama)
-        VALUES ('admin', '$2y$10$wus4kmfZ2LKyKrIkKWyKHuKxXQtoViMVVcz9q.ZjYacKJ8ErdmRTW', 'Administrator'); 
+        - dan ini untuk bar ny, sebelum bentuk tabel
+        ```html
+        <form action="" method="GET" class="mb-4">
+            <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Cari nama barang...">
+            <button type="submit" name="submit" class="btn btn-primary">Cari</button>
+        </form>
         ```
 
-        - untuk password di hashing dulu pake 
-        ```php 
-        password_hash('password di sini', PASSWORD_DEFAULT)
-        ``` 
 
+    - Terakhir
+        - bagian atas ``home.php`` sama seperti tadi untuk search.
+        ```php
+        $b = $db->getAll('data_barang', $sql_where);
+        $barang = $b['data']; // nah ini
+        $num_page = $b['num_page']; 
+        ```
 
-    - Update ``login.php`` untuk memakai tabel ``users``
-    ```php
-    $message = "";
-    if ($_POST) {
-        $db = new Database();
+        - setelah tabel
+        ```php
+        <ul class="pagination">
+        <?php 
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $que = !empty($q) ? "&q=$q&submit=1" : "";
 
-        // Ambil input dan sanitasi (basic)
-        $username = trim($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
-
-        if ($username === '' || $password === '') {
-            $message = "Username dan password harus diisi!";
+        if ($page > 1) {
+            $prev = $page - 1;
+            $prev_link = "?page={$prev}" . (!empty($q) ? "&q={$q}" : "");
+            echo "<li><a href='{$prev_link}'>&laquo; </a></li>";
         } else {
+            echo "<li class='disabled'><a>&laquo; </a></li>";
+        }
+        
 
-            // Query cari user berdasarkan username
-            $sql = "SELECT * FROM users WHERE username = '{$username}' LIMIT 1";
-            $result = $db->query($sql);
-            $data = $result->fetch_assoc();
-
-            // Verifikasi password
-            if ($data && password_verify($password, $data['password'])) {
-                // Login Sukses: Set Session
-                $_SESSION['is_login'] = true;
-                $_SESSION['username'] = $data['username'];
-                $_SESSION['nama'] = $data['nama'];
-
-                // Redirect ke halaman utama
-                header('Location:' . BASE_URL . '/artikel/home');
-                exit;
+        for ($i=1; $i <= $num_page; $i++) { 
+            $link = "?page={$i}" . (!empty($q) ? "&q={$q}" : "");  // make q untuk tahu batas nya 
+            if ($i == $page) {
+                echo "<li class='active'><a href='{$link}'>{$i}</a></li>";
             } else {
-                $message = "Username atau password salah!";
+                echo "<li><a href='{$link}'>{$i}</a></li>";
             }
         }
-    }
-    ```
-
-    - File baru [profile.php](https://github.com/laLafid/Lab12Web/blob/cff1b93405542d8eeb679a6f7b6f5ef160a65623/module/user/profile.php) untuk tampilan profil user dan juga ganti password 
-
-    - Tambahan di ``header.php`` untuk akomodasi ``profile.php`` dan filter user
-    ```php
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="<?=BASE_URL ?>home/index">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>artikel/about">Tentang</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>artikel/kontak">Kontak</a></li>
-            <?php if (isset($_SESSION['is_login'])): ?> //dah login?
-            <li class="nav-item"><a class="nav-link" href="<?=BASE_URL ?>artikel/home">Data Artikel</a></li>
-        <?php endif; ?>
+        
+        if ($page < $num_page) {
+            $next = $page + 1;
+            $next_link = "?page={$next}" . (!empty($q) ? "&q={$q}" : "");
+            echo "<li><a href='{$next_link}'> &raquo;</a></li>";
+        } else {
+            echo "<li class='disabled'><a> &raquo;</a></li>";
+        }
+        ?>
         </ul>
-
-        <ul class="navbar-nav ms-auto">
-            <?php if (isset($_SESSION['is_login'])): ?>
-            <li class="nav-item"><a class="nav-link" href="<?=BASE_URL ?>user/profile">Profil</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?=BASE_URL ?>user/logout">Logout (<?=$_SESSION['nama'] ?? '' ?>)</a></li>
-            <?php else: ?> // belum login, tampilin ini
-            <li class="nav-item"><a class="nav-link" href="<?=BASE_URL ?>user/login">Login</a></li>
-            <?php endif; ?>
-        </ul>
-    </div>
-    ```
+        ```
 
 
 3. **Hasil Akhir**
     
-    ![alt text](gambar/3.1.png)
-
-    ![alt text](gambar/3.3.png)
-
-    ![alt text](gambar/3.0.png)
+    ![alt text](gambar/ada.gif)
 
     - Profile
     ![alt text](gambar/3.7.png)

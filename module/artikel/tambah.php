@@ -35,7 +35,9 @@ if ($_POST) {
     $form->addField("kategori", "Kategori", "select", '', [
         "Komputer" => "Komputer",
         "Elektronik" => "Elektronik",
-        "Hand Phone" => "Hand Phone"
+        "HandPhone" => "HandPhone",
+        "Tablet" => "Tablet",
+        "Aksesoris" => "Aksesoris"
     ]);
     $form->addField("harga_jual", "Harga Jual", "number");
     $form->addField("harga_beli", "Harga Beli", "number");

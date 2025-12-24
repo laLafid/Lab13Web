@@ -1,7 +1,14 @@
 <?php
 require_once __DIR__ . '/../../class/db.php'; // path ke class/db.php
 $db = new Database();
-$b = $db->getAll('data_barang');
+
+$q = ''; // untukny pencarian
+if (isset($_GET['submit']) && !empty($_GET['q'])) {
+    $q = $_GET['q'];
+    $sql_where = "nama LIKE '{$q}%'"; 
+} else{ $sql_where=null;}
+
+$b = $db->getAll('data_barang', $sql_where);
 $barang = $b['data'];
 $num_page = $b['num_page'];
 ?>
@@ -13,6 +20,11 @@ $num_page = $b['num_page'];
             + Tambah Barang
         </a>
     </div>
+
+    <form action="" method="GET" class="mb-4">
+        <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Cari nama barang...">
+        <button type="submit" name="submit" class="btn btn-primary">Cari</button>
+    </form>
 
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
@@ -36,7 +48,7 @@ $num_page = $b['num_page'];
                                     <img src="<?= BASE_URL ?>gambar/<?= basename($b['gambar']) ?>" 
                                          width="80" class="img-thumbnail">
                                 <?php else: ?>
-                                    <img src="<?= BASE_URL ?>gambar/no-image.jpg" width="80" class="img-thumbnail">
+                                    <img src="<?= BASE_URL ?>gambar/no-image.png" width="80" class="img-thumbnail">
                                 <?php endif; ?>
                             </td>
                             <td><?= htmlspecialchars($b['nama']) ?></td>
@@ -67,28 +79,30 @@ $num_page = $b['num_page'];
         <ul class="pagination">
         <?php 
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $que = !empty($q) ? "&q=$q&submit=1" : "";
 
         if ($page > 1) {
             $prev = $page - 1;
             $prev_link = "?page={$prev}" . (!empty($q) ? "&q={$q}" : "");
-            echo "<li><a href='{$prev_link}'>&laquo; Previous</a></li>";
+            echo "<li><a href='{$prev_link}'>&laquo; </a></li>";
         } else {
-            echo "<li class='disabled'><a>&laquo; Previous</a></li>";
+            echo "<li class='disabled'><a>&laquo; </a></li>";
         }
+        
 
-        for ($i=1; $i <= $num_page; $i++) {
+        for ($i=1; $i <= $num_page; $i++) { 
             $link = "?page={$i}";
             if (!empty($q)) $link .= "&q={$q}";
             $class = ($page == $i ? 'active' : '');
             echo "<li><a class=\"{$class}\" href=\"{$link}\">{$i}</a></li>";
-        } 
+        }
         
         if ($page < $num_page) {
             $next = $page + 1;
             $next_link = "?page={$next}" . (!empty($q) ? "&q={$q}" : "");
-            echo "<li><a href='{$next_link}'>Next &raquo;</a></li>";
+            echo "<li><a href='{$next_link}'> &raquo;</a></li>";
         } else {
-            echo "<li class='disabled'><a>Next &raquo;</a></li>";
+            echo "<li class='disabled'><a> &raquo;</a></li>";
         }
         ?>
         </ul>
